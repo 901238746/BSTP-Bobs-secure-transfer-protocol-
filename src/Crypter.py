@@ -1,6 +1,5 @@
 ﻿import binascii, math
 Encoding = ' ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnop1234567890~!@#$%^&*()`[{}]:;"\'<>,.?/|\\=+-_'
-print(len(Encoding))
 def Listify(In):
 	out = []
 	for i in str(In):
@@ -207,4 +206,3 @@ def WriteBin(file, content):
 	if file == None:
 		file = open('Output.txt', 'wb')
 	file.write(bytesOut)
-print(PassHash("Ok", "Lol", 25, 12))
