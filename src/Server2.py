@@ -32,7 +32,7 @@ class MyTCPHandler(socketserver.BaseRequestHandler):
         self.data = self.request.recv(1024).strip()
         print("Received from {}:".format(self.client_address[0]))
         #print(self.data)
-        self.data = str(bin(int.from_bytes(self.data, byteorder="big")))
+        self.data = str(hex(int(self.data)))
         out = ""
         print("Data=" + self.data)
         if self.data[2:10] == "00000000":
@@ -41,9 +41,9 @@ class MyTCPHandler(socketserver.BaseRequestHandler):
             clients[NewKey] = [420]
         else:
             try:
-                RequestType = int(self.data[2:10], 2)
+                RequestType = hex(int(self.data[2:10], 2))
                 Key = bytes(self.data[10:202]).decode()
-                RequestItem = int(self.data[202:-8], 2)
+                RequestItem = hex(int(self.data[202:210], 2))
             except:
                 print("Invalid Input!")
             else:
@@ -60,9 +60,8 @@ class MyTCPHandler(socketserver.BaseRequestHandler):
                     out = ""
             
             self.request.sendall(out.encode())
-        # just send back the same data, but upper-cased
 if __name__ == "__main__":
-    HOST, PORT = "localhost", 9999
+    HOST, PORT = "localhost", 9049
 
     # Create the server, binding to localhost on port 9999
     with socketserver.TCPServer((HOST, PORT), MyTCPHandler) as server:

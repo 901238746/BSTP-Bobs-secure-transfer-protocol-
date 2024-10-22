@@ -1,5 +1,6 @@
 ﻿import binascii, math
-Encoding = ' ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnop1234567890~!@#$%^&*()`[{}]:;"\'<>,.?/|\\=+-_'
+Encoding = ' ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890~!@#$%^&*()`[{}]:;"\'<>,.?/|\\=+-_§¥'
+print(len(Encoding))
 def Listify(In):
 	out = []
 	for i in str(In):
@@ -13,10 +14,10 @@ def DeListify(In):
 def PassHash(Key, Key2, Len, Index):
 	Out = "00000000"
 	for i in Key:
+		Binary = str(bin(Listify(Encoding).index(i) % 512))[2:]
 		w = 0
 		Out = Listify(Out)
 		Out2 = []
-		Binary = str(bin(Encoding.index(i) % 512)[2:])
 		for i in range(8 - len(Binary)):
 			Binary = "0" + Binary
 		for i in Binary:
@@ -26,26 +27,28 @@ def PassHash(Key, Key2, Len, Index):
 				else:
 					Out2.append("0")
 		Out = Out2
-	i = (((math.ceil(Index / Len) * Encoding.index(Key[Index % len(Key)])) % len(Key2)) + Encoding.index(Key[(len(Key2) * Len) % len(Key)]) % 512)
+	i = (((math.ceil(Index / Len) * Listify(Encoding).index(Key[Index % len(Key)])) % len(Key2)) + Listify(Encoding).index(Key[(len(Key2) * Len) % len(Key)]) % 512)
 	w = 0
 	Binary = str(bin(i)[2:])
 	for i in range(8 - len(Binary)):
 		Binary = "0" + Binary
+	for i in range(8 - len(Out)):
+		Out.insert(0, "0")
 	for i in Binary:
-		if i == "1":
-			if Out[w] == "0":
-				Out[w] = "1"
-			else:
-				Out[w] = "0"
-	return DeListify(Out)
-def Encrypt(Data, Key, Key2,Method=1):
+		Out[w] = ((int(i) + 1) % 2)
+		w += 1
+	Out = DeListify(Out)
+	return Out
+def Encrypt(Data, Key, Key2, Method=0):
 	y = 0
 	conPart = 0
 	x = ''
+	index = -1
 	out = ''
 	keyPart = 0
 	for i in Data:
 		y += 1
+		index += 1
 		x += str(i)
 		if y == 8:
 			if Method == 0:
@@ -91,6 +94,12 @@ def Encrypt(Data, Key, Key2,Method=1):
 							binary2.append('0')
 						place += 1
 					binary = binary2
+				binary2 = []
+				passhash = PassHash(Key, Key2, len(Data), index)
+				z = -1
+				for i in binary:
+					z += 1
+					binary2.append((int(passhash[z]) + int(i)) % 2)
 				binary = DeListify(binary)
 				out += binary
 				binary = 0
@@ -100,6 +109,7 @@ def Encrypt(Data, Key, Key2,Method=1):
 			conPart += 1
 			x = ''
 			y = 0
+			print(index)
 	return out
 def Decrypt(Data, Key, Key2, Method=0):
 	y = 0
@@ -125,6 +135,12 @@ def Decrypt(Data, Key, Key2, Method=0):
 					dummydata -= Encoding.index(Key2[conPart])
 				place = 0
 				binary = Listify(binary)
+				binary2 = []
+				passhash = PassHash(Key, Key2, len(Data), y)
+				z = -1
+				for i in binary:
+					z += 1
+					binary2.append(passhash[z] + i % 2)
 				binary2 = []
 				if len(Key) - 1 < keyPart:
 					print('the fuck?')
@@ -179,30 +195,12 @@ def Decrypt(Data, Key, Key2, Method=0):
 			y = 0
 	return out
 def ReadBin(file):
-	hexcode = binascii.hexlify((file.read())).decode()
-	y = 0
-	x = ''
-	out = []
-	for i in hexcode:
-		x += str(i)
-		if y == 1:
-			y = -1
-			out.append(str(x))
-			x = ''
-		y += 1
-	place = 0
-	tofinish = 0
-	finish = ''
-	for i in out:
-		tofinish = bin(int(str(i), 16))[2:]
-		if len(tofinish) < 8:
-			for i in range(0, 8 - len(tofinish)):
-				tofinish = '0' + tofinish
-		finish += tofinish
-	return finish
+	bincode = str(bin(int.from_bytes(file.read(), "big")))[2:]
+	for _ in range((len(str(file.read)) * 8 -3) - len(bincode)):
+		bincode = "0" + bincode
+	return bincode
 def WriteBin(file, content):
-	byteArray = bytearray(int(content, 2).to_bytes((len(content) + 7) // 8, byteorder='big'))
-	bytesOut = bytes(byteArray)
 	if file == None:
-		file = open('Output.txt', 'wb')
-	file.write(bytesOut)
+		file = open("Output.txt", "wb")
+	print(content)
+	file.write(int.to_bytes(int(content, 2), math.ceil(len(content) / 2), "big"))

@@ -1,1 +1,1 @@
-print(bin(int.from_bytes(bytes(0b00000000), byteorder="big")))
+print(bin(int.from_bytes(bytes(0b00001000), byteorder="little")))
