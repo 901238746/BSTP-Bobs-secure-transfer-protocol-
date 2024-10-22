@@ -2,7 +2,7 @@ import socketserver, os
 from Crypter import *
 #Format Key:[Data]
 Files = {
-    0:"Test.txt"
+    0:"test.txt"
 }
 clients = {}
 def GenKey():
